@@ -7,7 +7,7 @@ import random
 class Tetris:
     width: int
     height: int
-    grid: Deque[List[Optional[Color]]]
+    grid: List[List[Optional[Color]]]
     upcoming: List['TetrisPiece']
     floating: 'TetrisPiece'
     floating_pos: Tuple[int, int]
@@ -15,7 +15,7 @@ class Tetris:
     def __init__(self):
         self.width = 10
         self.height = 20
-        self.grid = deque([None for _ in range(self.width)] for _ in range(self.height + 2))
+        self.grid = [[None for _ in range(self.width)] for _ in range(self.height + 2)]
         self.upcoming = list(TetrisPiece.all)
         random.shuffle(self.upcoming)
         self.floating = TetrisPiece.Null
@@ -94,8 +94,20 @@ class Tetris:
             random.shuffle(self.upcoming)
         return self._consistent()
 
+    def clear(self):
+        assert self._consistent()
+        for row_idx in range(len(self.grid)):
+            if all(self.grid[row_idx]):
+                self.grid = [[None for _ in range(self.width)]] + self.grid[:row_idx] + self.grid[row_idx+1:]
+                assert self._consistent()
+
     def rotate_clockwise(self) -> bool:
         assert self._consistent()
+        success = self._rotate_clockwise()
+        assert self._consistent()
+        return success
+
+    def _rotate_clockwise(self) -> bool:
         self.floating.rotate_clockwise()
         for kick in self.floating.kick_clockwise[-1]:
             self.floating_pos = (self.floating_pos[0] + kick[0], self.floating_pos[1] + kick[1])
@@ -103,11 +115,16 @@ class Tetris:
                 return True
             else:
                 self.floating_pos = (self.floating_pos[0] - kick[0], self.floating_pos[1] - kick[1])
-        self.rotate_counterclockwise()
+        self._rotate_counterclockwise()
         return False
 
     def rotate_counterclockwise(self) -> bool:
         assert self._consistent()
+        success = self._rotate_counterclockwise()
+        assert self._consistent()
+        return success
+
+    def _rotate_counterclockwise(self) -> bool:
         self.floating.rotate_counterclockwise()
         for kick in self.floating.kick_counterclockwise[-1]:
             self.floating_pos = (self.floating_pos[0] + kick[0], self.floating_pos[1] + kick[1])
@@ -115,7 +132,7 @@ class Tetris:
                 return True
             else:
                 self.floating_pos = (self.floating_pos[0] - kick[0], self.floating_pos[1] - kick[1])
-        self.rotate_clockwise()
+        self._rotate_clockwise()
         return False
 
     # validity checks
@@ -179,10 +196,12 @@ class TetrisPiece:
     def rotate_clockwise(self):
         self.kick_clockwise.rotate(-1)
         self.kick_counterclockwise.rotate(1)
+        self.shape = list(zip(*self.shape[::-1]))
 
     def rotate_counterclockwise(self):
         self.kick_clockwise.rotate(1)
         self.kick_counterclockwise.rotate(-1)
+        self.shape = list(reversed(list(zip(*self.shape))))
 
 
 i = Color('cyan')
@@ -197,31 +216,31 @@ N = None
 # Arika SRS
 i_kicks = (
     deque([
-        [(0,0),(-2,0),(+1,0),(+1,+2),(-2,-1)],  # 0->R
-        [(0,0),(-1,0),(+2,0),(-1,+2),(+2,-1)],  # R->2
-        [(0,0),(+2,0),(-1,0),(+2,+1),(-1,-1)],  # 2->L
-        [(0,0),(-2,0),(+1,0),(-2,+1),(+1,-2)],  # L->0
+        [(0,0),(0,-2),(0,+1),(-2,+1),(+1,-2)],  # 0->R
+        [(0,0),(0,-1),(0,+2),(-2,-1),(+1,+2)],  # R->2
+        [(0,0),(0,+2),(0,-1),(-1,+2),(+1,-1)],  # 2->L
+        [(0,0),(0,-2),(0,+1),(-1,-2),(+2,+1)],  # L->0
     ]),
     deque([
-        [(0,0),(+2,0),(-1,0),(-1,+2),(+2,-1)],  # 0->L
-        [(0,0),(+1,0),(-2,0),(+1,+2),(-2,-1)],  # L->2
-        [(0,0),(-2,0),(+1,0),(-2,+1),(+1,-2)],  # 2->R
-        [(0,0),(+2,0),(-1,0),(+2,+1),(-1,-2)],  # R->0
+        [(0,0),(0,+2),(0,-1),(-2,-1),(+1,+2)],  # 0->L
+        [(0,0),(0,+1),(0,-2),(-2,+1),(+1,-2)],  # L->2
+        [(0,0),(0,-2),(0,+1),(-1,-2),(+2,+1)],  # 2->R
+        [(0,0),(0,+2),(0,-1),(-1,+2),(+2,-1)],  # R->0
     ]),
 )
 
 jlstz_kicks = (
     deque([
-        [(0,0),(-1,0),(-1,+1),(0,-2),(-1,-2)],  # 0->R
-        [(0,0),(+1,0),(+1,-1),(0,+2),(+1,+2)],  # R->2
-        [(0,0),(+1,0),(+1,+1),(0,-2),(-1,-2)],  # 2->L
-        [(0,0),(-1,0),(-1,-1),(0,+2),(-1,+2)],  # L->0
+        [(0,0),(0,-1),(-1,-1),(+2,0),(+2,-1)],  # 0->R
+        [(0,0),(0,+1),(+1,+1),(-2,0),(-2,+1)],  # R->2
+        [(0,0),(0,+1),(-1,+1),(+2,0),(+2,-1)],  # 2->L
+        [(0,0),(0,-1),(+1,-1),(-2,0),(-2,-1)],  # L->0
     ]),
     deque([
-        [(0,0),(+1,0),(+1,+1),(0,-2),(+1,-2)],  # 0->L
-        [(0,0),(-1,0),(-1,-1),(0,+2),(-1,+2)],  # L->2
-        [(0,0),(-1,0),(-1,+1),(0,-2),(-1,-2)],  # 2->R
-        [(0,0),(+1,0),(+1,-1),(0,-2),(-1,-2)],  # R->0
+        [(0,0),(0,+1),(-1,+1),(+2,0),(+2,+1)],  # 0->L
+        [(0,0),(0,-1),(+1,-1),(-2,0),(-2,-1)],  # L->2
+        [(0,0),(0,-1),(-1,-1),(+2,0),(+2,-1)],  # 2->R
+        [(0,0),(0,+1),(+1,+1),(+2,0),(+2,-1)],  # R->0
     ]),
 )
 

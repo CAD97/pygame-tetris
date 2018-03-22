@@ -15,8 +15,8 @@ class Tetris:
 
     def __init__(self):
         self.width = 10
-        self.height = 20
-        self.grid = [[None for _ in range(self.width)] for _ in range(self.height + 2)]
+        self.height = 22
+        self.grid = [[None for _ in range(self.width)] for _ in range(self.height)]
         self.upcoming = list(TetrisPiece.all)
         random.shuffle(self.upcoming)
         self.holding = TetrisPiece.Null
@@ -158,7 +158,7 @@ class Tetris:
         for dy in range(self.floating.height):
             for dx in range(self.floating.width):
                 if self.floating.shape[dy][dx]:
-                    if not (0 <= (x + dx) < self.width and 0 <= (y + dy) < (self.height + 2)):
+                    if not (0 <= (x + dx) < self.width and 0 <= (y + dy) < self.height):
                         return False
         return True
 

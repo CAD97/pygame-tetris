@@ -89,7 +89,7 @@ class Tetris:
             for dx in range(self.floating.width):
                 if self.floating.shape[dy][dx]:
                     self.grid[y + dy][x + dx] = self.floating.shape[dy][dx]
-        self.floating_pos = (0, 4)
+        self.floating_pos = (0, 3)
         self.floating = self.upcoming.pop().cloned()
         if not self.upcoming:
             self.upcoming = list(TetrisPiece.all)
@@ -108,7 +108,7 @@ class Tetris:
         """Hold functionality: put the current piece on hold and take the old one from hold."""
         assert self._consistent()
         self.holding, self.floating = self.floating, self.holding
-        self.floating_pos = (0, 4)
+        self.floating_pos = (0, 3)
         if self.floating is TetrisPiece.Null:
             self.lock()
 

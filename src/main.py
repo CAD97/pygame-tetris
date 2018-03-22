@@ -2,6 +2,7 @@ import pygame, sys
 from model import Tetris
 from pygame import Color, Rect
 
+
 def main():
     pygame.init()
     tetris = Tetris()
@@ -21,6 +22,9 @@ def main():
                     tetris.rotate_counterclockwise()
                 elif key == 'x':
                     tetris.rotate_clockwise()
+                elif key == 'r':
+                    tetris = Tetris()
+                    continue
                 elif key == ' ':
                     tetris.hold()
                 elif key == '':

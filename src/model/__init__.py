@@ -11,6 +11,7 @@ class Tetris:
     upcoming: List['TetrisPiece']
     floating: 'TetrisPiece'
     floating_pos: Tuple[int, int]
+    holding: 'TetrisPiece'
 
     def __init__(self):
         self.width = 10
@@ -18,6 +19,7 @@ class Tetris:
         self.grid = [[None for _ in range(self.width)] for _ in range(self.height + 2)]
         self.upcoming = list(TetrisPiece.all)
         random.shuffle(self.upcoming)
+        self.holding = TetrisPiece.Null
         self.floating = TetrisPiece.Null
         self.floating_pos = (0, 0)
         self.lock()
@@ -95,11 +97,22 @@ class Tetris:
         return self._consistent()
 
     def clear(self):
+        """Clear full lines."""
         assert self._consistent()
         for row_idx in range(len(self.grid)):
             if all(self.grid[row_idx]):
                 self.grid = [[None for _ in range(self.width)]] + self.grid[:row_idx] + self.grid[row_idx+1:]
                 assert self._consistent()
+
+    def hold(self):
+        """Hold functionality: put the current piece on hold and take the old one from hold."""
+        assert self._consistent()
+        self.holding, self.floating = self.floating, self.holding
+        self.floating_pos = (0, 4)
+        if self.floating is TetrisPiece.Null:
+            self.lock()
+
+    # rotation
 
     def rotate_clockwise(self) -> bool:
         assert self._consistent()
@@ -136,6 +149,7 @@ class Tetris:
         return False
 
     # validity checks
+
     def _consistent(self) -> bool:
         return self._floating_inbounds() and not self._floating_overlap()
 

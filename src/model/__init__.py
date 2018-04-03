@@ -8,7 +8,7 @@ class Tetris:
     width: int
     height: int
     grid: List[List[Optional[Color]]]
-    upcoming: List['TetrisPiece']
+    upcoming: Deque['TetrisPiece']
     floating: 'TetrisPiece'
     floating_pos: Tuple[int, int]
     holding: 'TetrisPiece'
@@ -17,7 +17,7 @@ class Tetris:
         self.width = 10
         self.height = 22
         self.grid = [[None for _ in range(self.width)] for _ in range(self.height)]
-        self.upcoming = list(TetrisPiece.all)
+        self.upcoming = deque(TetrisPiece.all)
         random.shuffle(self.upcoming)
         self.holding = TetrisPiece.Null
         self.floating = TetrisPiece.Null
@@ -90,10 +90,11 @@ class Tetris:
                 if self.floating.shape[dy][dx]:
                     self.grid[y + dy][x + dx] = self.floating.shape[dy][dx]
         self.floating_pos = (0, 3)
-        self.floating = self.upcoming.pop().cloned()
-        if not self.upcoming:
-            self.upcoming = list(TetrisPiece.all)
-            random.shuffle(self.upcoming)
+        self.floating = self.upcoming.popleft().cloned()
+        if len(self.upcoming) < 4:
+            bag = list(TetrisPiece.all)
+            random.shuffle(bag)
+            self.upcoming.extend(bag)
         return self._consistent()
 
     def clear(self):
